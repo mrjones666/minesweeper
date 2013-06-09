@@ -1,7 +1,7 @@
 package minesweeper;
 
 import javax.swing.JButton;
-
+//teszt
 public class Field extends JButton {
     
     private int x, y;
