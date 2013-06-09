@@ -28,16 +28,27 @@ public class ComputerPlayer extends Player {
         
         int randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
         int randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
-                
-//        if(level == 3)
-//        {
-            while(!fields[randRow][randCol].isClickable())
-            {
-                randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
-                randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
-            }                         
-//        }
         
+        
+        boolean again = true;
+        while (!again) {
+            randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
+            randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
+            
+            if (fields[randRow][randCol].hasMine() && fields[randRow][randCol].isClickable())
+                again = !again;
+        }
+        
+        //if(level == 3)
+        //{
+//            //while(!fields[randRow][randCol].isClickable()) //nincs vége a játéknak, ha eléri a 20-at (sem a legvégén)
+//            while(!fields[randRow][randCol].hasMine() && !fields[randRow][randCol].isClickable()) //elvileg azonnal meg kellene találnia az összeset, ezzel szemben 8-16ot talál egyszerre és megáll, pedig még ő jönne
+//            {
+//                randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
+//                randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
+//            }                         
+        //}
+        System.out.println("CPU: " + randRow + '-' + randCol);
         return fields[randRow][randCol];
         // todo
         //return null;

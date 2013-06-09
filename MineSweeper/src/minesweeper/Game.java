@@ -35,7 +35,8 @@ public class Game implements MouseListener {
         this.players[1] = new ComputerPlayer(3);
 
         // sorsoljuk ki, hogy ki kezd
-        this.players[this.drawFirstPlayer()].setActive(true);
+        //this.players[this.drawFirstPlayer()].setActive(true);
+        this.players[0].setActive(true);
 
         // create view
         this.boardSize = new BoardSize(14, 14);
@@ -67,7 +68,6 @@ public class Game implements MouseListener {
     }
 
     private void handleFieldClick(Field field) {
-
         if (field.isClickable()) {
 
             field.setBorder(BorderFactory.createLineBorder(new Color(1, 153, 203), 2));
@@ -75,18 +75,9 @@ public class Game implements MouseListener {
 
             // ne reagáljon kétszer ugyanarra a gombra
             field.disableClick();
-
-            // cseréljük fel az aktív játékosokat (magyarul: ki jön?)
+           
+            // check points
             this.newTurn(field.getXPos(), field.getYPos(), field.hasMine());
-
-            // ha vége a játéknak, kezdjük újra
-            if (this.isGameOver() == 1) {
-                // előbb mutassuk meg a végeredményt, aztán:
-                this.newGame();
-            } else if (this.isGameOver() == -1) {
-                // játék vége felé vagyunk, az egyik játékos 3 pontra van a győzelemtől
-                // játsszunk le vmi alarm sound-ot!
-            }
         }
     }
 
@@ -122,16 +113,6 @@ public class Game implements MouseListener {
         this.debugMode = value;
     }
 
-    private int evaluateField(int x, int y) {
-        int result = this.countSurroundingMines(x, y);
-
-        if (result == 0) {
-            // floodfill algoritmus!
-        }
-
-        return result;
-    }
-
     private int drawFirstPlayer() {
         return Math.random() < 0.5 ? 0 : 1;
     }
@@ -149,8 +130,19 @@ public class Game implements MouseListener {
 
         return result;
     }
+    
+    private Player getWinner() {
+        for (Player player : players) {
+            if (player.getPoints() >= this.pointsToWin)
+                return player;
+        }
+        
+        return null;
+    }
 
     private void newTurn(int x, int y, boolean hadMine) {
+        this.pointsToWin = 2; // debug
+        
         int i = 0;
         for (Player player : players) {
             // nem volt akna a kattintott helyen, másik pléjer jön
@@ -174,26 +166,21 @@ public class Game implements MouseListener {
 
             // gui frissítése az eredmény alapján
             this.board.refreshPlayer(i, player);
-
+            
+            if (player.getPoints() >= this.pointsToWin) {
+                System.out.println(player.getName() + " has " + player.getPoints() + " points.");
+                System.out.println("He won.");
+                
+                this.newGame();
+            }
+            
             i++;
         }
 
         if (this.getActivePlayer() instanceof ComputerPlayer) {
-            // wait a few seconds
-//            try {
-//                System.out.println("start");
-//                Thread.sleep(3000);
-//            } catch (InterruptedException ex) {
-//                Thread.currentThread().interrupt();
-//            }
-//
-//            System.out.println("stop");
-//            
             ComputerPlayer player = (ComputerPlayer) this.getActivePlayer();
-
             // let it pick a field
             Field pickedField = player.pickField(this.board.fields);
-
             // new turn
             this.handleFieldClick(pickedField);
         }
@@ -215,16 +202,18 @@ public class Game implements MouseListener {
 
     private int isGameOver() {
         //System.out.println(this.pointsToWin + " aknát kell megtalálni a győzelemhez.");
-
-        Player player = this.getActivePlayer();
-        //if (player.getPoints() >= 2) { // debug
-        if (player.getPoints() >= this.pointsToWin) {
-            return 1;
-        } else if (player.getPoints() == this.pointsToWin - 1
-                || player.getPoints() == this.pointsToWin - 3) {
-            return -1;
-        }
-
+//        this.pointsToWin = 2;
+//        for (Player player : players) {
+//            System.out.println(player.getName() + " has " + player.getPoints() + " points.");
+//            if (player.getPoints() >= this.pointsToWin) {
+//                
+//                return 1;
+//            } /*else if (player.getPoints() == this.pointsToWin - 1
+//                    || player.getPoints() == this.pointsToWin - 3) {
+//                return -1;
+//            }*/
+//        }
+//
         return 0;
     }
 
@@ -275,12 +264,9 @@ public class Game implements MouseListener {
                 }
             }
         }
-
-        System.out.println(count + " db akna van összesen a pályán.");
     }
-    
-    public static BoardSize getBoardSize()
-    {
+
+    public static BoardSize getBoardSize() {
         return boardSize;
     }
 }
