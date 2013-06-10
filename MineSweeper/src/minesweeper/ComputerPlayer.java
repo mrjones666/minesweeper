@@ -26,11 +26,11 @@ public class ComputerPlayer extends Player {
         
         Random rand = new Random();
         
-        Field [][] temp = new Field[fields.length][fields.length];
-        
         int randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
         int randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
-                
+        
+        Field [][] temp = new Field[fields.length][fields.length];
+                        
         if(level == 1)
         {    
             while(!fields[randRow][randCol].isClickable())
@@ -52,7 +52,7 @@ public class ComputerPlayer extends Player {
              {
                 if(fields[i][j].getText() == "x")
                 {
-                    System.out.println(fields[i][j].getText() + ": " + fields[i][j].getXPos() 
+                    System.out.println(fields[i][j].getText() + ": " + fields[i][j].getXPos()
                     + " - " + fields[i][j].getYPos());
                 }   
              }
@@ -61,9 +61,20 @@ public class ComputerPlayer extends Player {
         
         if(level == 3)
         {
+            for (int i = 1; i <= Game.getBoardSize().x; i++) 
+            {
+                for (int j = 1; j <= Game.getBoardSize().y; j++) 
+                {
+                    if(fields[i][j].getText() != "x")
+                    {
+                        System.out.println(fields[i][j].getText() + ": " + fields[i][j].getXPos() 
+                        + " - " + fields[i][j].getYPos());
+                    }   
+                 }
+            }
             
             while(!fields[randRow][randCol].isClickable())
-            {         
+            {                  
                 randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
                 randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
                 
@@ -82,17 +93,7 @@ public class ComputerPlayer extends Player {
                         
                     } while (Game.getPointsToWin() - Game.getCompPlayerPoints() != 1);
                 }
-             }
-            
-           for (int i = 1; i <= Game.getBoardSize().x; i++) {
-                for (int j = 1; j <= Game.getBoardSize().y; j++) {
-                    if(fields[i][j].getText() != "")
-                    {
-                        System.out.println(fields[i][j].getText() + ": " + fields[i][j].getXPos() 
-                        + " - " + fields[i][j].getYPos());
-                    }   
-               }
-            }
+             }            
         }
         return fields[randRow][randCol];
     }
