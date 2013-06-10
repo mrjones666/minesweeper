@@ -65,7 +65,7 @@ public class ComputerPlayer extends Player {
             {
                 for (int j = 1; j <= Game.getBoardSize().y; j++) 
                 {
-                    if(fields[i][j].getText() != "x")
+                    if(fields[i][j].getText() != "3")
                     {
                         System.out.println(fields[i][j].getText() + ": " + fields[i][j].getXPos() 
                         + " - " + fields[i][j].getYPos());
