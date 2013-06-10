@@ -73,7 +73,7 @@ végigloopolsz a pléjereken és player.toggleActive()
 Amúgy újabb bővítési lehetőség
 3 plejer nagyobb pálya
 2 cpu
-Amúgy logikusan kene rajnai a cpunak
+Amúgy logikusan kene raknia a cpunak
 Ha felnyitottam egyet amire 4 van írva akkor arrafelé rakjon
 
  */

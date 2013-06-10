@@ -87,8 +87,8 @@ public class Game implements MouseListener {
             
         //System.out.println(players[0].getPoints());
         
-        System.out.println("pts: " + players[0].getPoints());
-        System.out.println("remaining: " + (pointsToWin - (players[0].getPoints()))); //pts remaining
+        //System.out.println("pts: " + players[0].getPoints());
+        //System.out.println("remaining: " + (pointsToWin - (players[0].getPoints()))); //pts remaining
                 
         }
     }

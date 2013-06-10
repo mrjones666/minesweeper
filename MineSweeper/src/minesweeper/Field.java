@@ -44,5 +44,4 @@ public class Field extends JButton {
         this.x = x;
         this.y = y;
     }
-    
 }
