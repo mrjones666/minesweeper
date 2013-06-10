@@ -25,7 +25,7 @@ public class Player {
     }
 
     public int getPoints() {
-        return this.points;
+        return points;
     }
 
     public String getName() {
@@ -54,6 +54,11 @@ public class Player {
 
     public void toggleActive() {
         this.active = !this.active;
+    }
+    
+    public void setFlag(ImageIcon flagIcon)
+    {
+        this.flagIcon = flagIcon;
     }
 
     @Override

@@ -9,11 +9,13 @@ import javax.swing.ImageIcon;
 public class Game implements MouseListener {
 
     private static Game instance = null;
-    private Player[] players;
+    private static Player[] players;
     private Board board;
     private static BoardSize boardSize;
-    private int pointsToWin;
+    private static int pointsToWin;
     private boolean debugMode = false;
+    
+    private static int compLvl = 3;
 
     /**
      * Only one instance.
@@ -32,8 +34,10 @@ public class Game implements MouseListener {
         // create players and decide who starts
         this.players = new Player[2];
         this.players[0] = new HumanPlayer("George");
-        this.players[1] = new ComputerPlayer(3);
-
+        //this.players[1] = new HumanPlayer("HP", new ImageIcon("./media/img/zaszlo1.png"));
+        this.players[1] = new ComputerPlayer(compLvl);
+        
+        
         // sorsoljuk ki, hogy ki kezd
         //this.players[this.drawFirstPlayer()].setActive(true);
         this.players[0].setActive(true);
@@ -78,6 +82,14 @@ public class Game implements MouseListener {
            
             // check points
             this.newTurn(field.getXPos(), field.getYPos(), field.hasMine());
+            
+          //          System.out.println(Game.getPointsToWin());
+            
+        //System.out.println(players[0].getPoints());
+        
+        System.out.println("pts: " + players[0].getPoints());
+        System.out.println("remaining: " + (pointsToWin - (players[0].getPoints()))); //pts remaining
+                
         }
     }
 
@@ -141,7 +153,7 @@ public class Game implements MouseListener {
     }
 
     private void newTurn(int x, int y, boolean hadMine) {
-        this.pointsToWin = 2; // debug
+        this.pointsToWin = 11; // debug
         
         int i = 0;
         for (Player player : players) {
@@ -184,7 +196,6 @@ public class Game implements MouseListener {
             // new turn
             this.handleFieldClick(pickedField);
         }
-
     }
 
     private void newGame() {
@@ -216,14 +227,14 @@ public class Game implements MouseListener {
 //
         return 0;
     }
-
+   
+       
     private Player getActivePlayer() {
         for (Player player : players) {
             if (player.isActive()) {
                 return player;
             }
         }
-
         return null;
     }
 
@@ -266,7 +277,29 @@ public class Game implements MouseListener {
         }
     }
 
-    public static BoardSize getBoardSize() {
-        return boardSize;
+    public static BoardSize getBoardSize()
+    {
+        return boardSize;    
     }
+           
+    public static int getCompLvl()
+    {
+        return compLvl;
+    }
+    
+    public static int getPointsToWin()
+    {
+        return pointsToWin;
+    }
+    
+    public static int getHumanPlayerPoints()
+    {
+        return players[0].getPoints();
+    }
+    
+    public static int getCompPlayerPoints()
+    {
+        return players[1].getPoints();
+    }
+    
 }

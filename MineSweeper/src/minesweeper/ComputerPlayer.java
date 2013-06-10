@@ -23,34 +23,63 @@ public class ComputerPlayer extends Player {
     }
     
     public Field pickField(Field[][] fields) {
-
+        
+        boolean cheat;
+        
+        boolean again = true;
+        
         Random rand = new Random();
         
         int randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
         int randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
         
-        
-        boolean again = true;
-        while (!again) {
-            randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
-            randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
-            
-            if (fields[randRow][randCol].hasMine() && fields[randRow][randCol].isClickable())
-                again = !again;
+        if(level == 0)
+        {
+            ;
         }
         
-        //if(level == 3)
-        //{
-//            //while(!fields[randRow][randCol].isClickable()) //nincs vége a játéknak, ha eléri a 20-at (sem a legvégén)
-//            while(!fields[randRow][randCol].hasMine() && !fields[randRow][randCol].isClickable()) //elvileg azonnal meg kellene találnia az összeset, ezzel szemben 8-16ot talál egyszerre és megáll, pedig még ő jönne
-//            {
-//                randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
-//                randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
-//            }                         
-        //}
-        System.out.println("CPU: " + randRow + '-' + randCol);
+        if(level == 1)
+        {    
+            while(!fields[randRow][randCol].isClickable())
+            {
+                randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
+                randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
+            }
+           
+            System.out.println("CPU: " + randRow + '-' + randCol + " - " + 
+            "hasMine: " + fields[randRow][randCol].hasMine() + " - " + "clickable: " 
+            + fields[randRow][randCol].isClickable());
+        }
+        
+        if(level == 2)
+        {
+            ;
+        }
+        
+        if(level == 3)
+        {
+            while(!fields[randRow][randCol].isClickable())
+            {         
+                randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
+                randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
+                
+                if(Game.getPointsToWin() - Game.getHumanPlayerPoints() <= 3)
+                {
+                    do 
+                    {   
+                       randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
+                       randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
+                        
+                        while(!fields[randRow][randCol].isClickable() && !fields[randRow][randCol].hasMine())
+                        {
+                            randRow = rand.nextInt((Game.getBoardSize().x + 1) -1) + 1;
+                            randCol = rand.nextInt((Game.getBoardSize().y + 1) -1) + 1;
+                        }
+                        
+                    } while (Game.getPointsToWin() - Game.getCompPlayerPoints() != 1);
+                }
+             }
+           }                          
         return fields[randRow][randCol];
-        // todo
-        //return null;
     }   
 }
