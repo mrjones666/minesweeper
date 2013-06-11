@@ -7,9 +7,10 @@ import javax.swing.JPanel;
 
 public class MineField extends JPanel {
 
+    public Field[][] fields;
     private static MineField instance = null;
     private int x, y;
-    public Field[][] fields;
+    
 
     public static MineField instance() {
         if (instance == null) {
