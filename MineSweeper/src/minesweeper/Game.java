@@ -4,18 +4,15 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 
 public class Game implements MouseListener {
 
+    public int pointsToWin;
     private static Game instance = null;
-    private static Player[] players;
-    private Board board;
-    private static BoardSize boardSize;
-    private static int pointsToWin;
-    private boolean debugMode = false;
+    private Player[] players = new Player[2];
+    private BoardSize boardSize = new BoardSize(14, 14);
     
-    private static int compLvl = 3;
+    private boolean debugMode = true;
 
     /**
      * Only one instance.
@@ -31,36 +28,27 @@ public class Game implements MouseListener {
     }
 
     private Game() {
-        // create players and decide who starts
-        this.players = new Player[2];
+        // játékosok
         this.players[0] = new HumanPlayer("George");
-        //this.players[1] = new HumanPlayer("HP", new ImageIcon("./media/img/zaszlo1.png"));
-        this.players[1] = new ComputerPlayer(compLvl);
-        
-        
-        // sorsoljuk ki, hogy ki kezd
-        //this.players[this.drawFirstPlayer()].setActive(true);
+//        this.players[1] = new HumanPlayer("HP", new ImageIcon("./media/img/zaszlo1.png"));
+        this.players[1] = new ComputerPlayer();
         this.players[0].setActive(true);
+        
+        // játékosok felső barja
+        StatusBar.instance().addPlayer(players);
+        
+        // játéktábla mérete
+        MineField.instance().setSize1(this.boardSize.x, this.boardSize.y);
 
-        // create view
-        this.boardSize = new BoardSize(14, 14);
-        this.board = Board.instance(this.boardSize);
-        boolean[][] spots = this.createSpots(this.boardSize.x, this.boardSize.y);
-
-        // add players to the view
-        for (Player player : players) {
-            this.board.addPlayer(player.getName(), player.isActive());
-        }
-
-        // tell the view how to work
-        this.board.addFields(spots);
-        this.board.setSize(750, 740);
-        this.board.setLocationRelativeTo(null);
-        this.board.setTitle("Aknakereső");
-        this.board.setBackground(new Color(92, 92, 92));
-
-        this.addListeners();
-        this.board.setVisible(true);
+        // mezők létrehozása a játéktáblán
+        this.createFields();
+        
+        // ablakbeállítások
+        MainWindow.instance().setSize(750, 740);
+        MainWindow.instance().setLocationRelativeTo(null);
+        MainWindow.instance().setTitle("Aknakereső");
+        MainWindow.instance().setBackground(new Color(92, 92, 92));
+        MainWindow.instance().setVisible(true);
     }
 
     @Override
@@ -73,24 +61,56 @@ public class Game implements MouseListener {
 
     private void handleFieldClick(Field field) {
         if (field.isClickable()) {
-
-            field.setBorder(BorderFactory.createLineBorder(new Color(1, 153, 203), 2));
-            field.setIcon(new ImageIcon("./media/img/aknaClicked.png"));
-
-            // ne reagáljon kétszer ugyanarra a gombra
             field.disableClick();
-           
+    
             // check points
-            this.newTurn(field.getXPos(), field.getYPos(), field.hasMine());
+            this.newTurn(field);
+            System.out.println(field.hasMine());
+            boolean gameOver = this.getActivePlayer().getPoints() >= this.pointsToWin;
+            if (gameOver) { 
+                //System.out.println(this.getActivePlayer().getName() + " won!");
+                this.newGame();
+            }
             
-          //          System.out.println(Game.getPointsToWin());
-            
-        //System.out.println(players[0].getPoints());
-        
-        //System.out.println("pts: " + players[0].getPoints());
-        //System.out.println("remaining: " + (pointsToWin - (players[0].getPoints()))); //pts remaining
+            // ha a gép jönne, kérjük meg hogy rakjon
+            if (this.getActivePlayer() instanceof ComputerPlayer) {
                 
+                ComputerPlayer player = (ComputerPlayer) this.getActivePlayer();
+                // let it pick a field
+                Field pickedField = player.pickField(MineField.instance().fields);
+                // new turn
+                this.handleFieldClick(pickedField);
+            }
+            
         }
+    }
+    
+     private void newTurn(Field field) {
+        this.pointsToWin = 2; // debug
+
+        int i = 0;
+        for (Player player : players) {
+            // nem volt akna a kattintott helyen, másik pléjer jön
+            if (!field.hasMine()) {
+                player.toggleActive();
+
+                int surroundingMines = MineField.instance().countSurroundingMines(field.getXPos(), field.getYPos());
+                if (surroundingMines > 0) new Sound("field").play();
+                else new Sound("flood").play(); // floodfill! todo
+                
+                MineField.instance().refreshField(field.getXPos(), field.getYPos(), surroundingMines);
+            } // volt akna, dobjunk egy pontot az aktív pléjernek és maradjon aktív
+            else if (field.hasMine() && player.isActive()) {
+                player.addPoint();
+                MineField.instance().refreshField(field.getXPos(), field.getYPos(), player.flagIcon);
+            }
+
+            // gui frissítése az eredmény alapján
+            StatusBar.instance().refreshPlayer(player);
+
+            i++;
+        }
+
     }
 
     @Override
@@ -121,114 +141,30 @@ public class Game implements MouseListener {
         }
     }
 
-    public void setDebugMode(boolean value) {
-        this.debugMode = value;
-    }
-
     private int drawFirstPlayer() {
         return Math.random() < 0.5 ? 0 : 1;
     }
 
-    private int countSurroundingMines(int x, int y) {
-        int result = 0;
-        for (int i = x - 1; i < x + 2; i++) {
-            for (int j = y - 1; j < y + 2; j++) {
-                if ((i > 0 && i <= this.boardSize.x && j > 0 && j <= this.boardSize.y)
-                        && this.board.fields[i][j].hasMine()) {
-                    result++;
-                }
+    private Player getWinner() {
+        for (Player player : players) {
+            if (player.getPoints() >= this.pointsToWin) {
+                return player;
             }
         }
 
-        return result;
-    }
-    
-    private Player getWinner() {
-        for (Player player : players) {
-            if (player.getPoints() >= this.pointsToWin)
-                return player;
-        }
-        
         return null;
     }
 
-    private void newTurn(int x, int y, boolean hadMine) {
-        this.pointsToWin = 11; // debug
-        
-        int i = 0;
-        for (Player player : players) {
-            // nem volt akna a kattintott helyen, másik pléjer jön
-            if (!hadMine) {
-                player.toggleActive();
-
-                int surroundingMines = this.countSurroundingMines(x, y);
-                if (surroundingMines > 0) {
-                    new Sound("field").play();
-                } else {
-                    new Sound("flood").play();
-                    // floodfill! todo
-                }
-
-                this.board.refreshField(x, y, surroundingMines);
-            } // volt akna, dobjunk egy pontot az aktív pléjernek és maradjon aktív
-            else if (hadMine && player.isActive()) {
-                player.addPoint();
-                this.board.refreshField(x, y, player.flagIcon);
-            }
-
-            // gui frissítése az eredmény alapján
-            this.board.refreshPlayer(i, player);
-            
-            if (player.getPoints() >= this.pointsToWin) {
-                System.out.println(player.getName() + " has " + player.getPoints() + " points.");
-                System.out.println("He won.");
-                
-                this.newGame();
-            }
-            
-            i++;
-        }
-
-        if (this.getActivePlayer() instanceof ComputerPlayer) {
-            ComputerPlayer player = (ComputerPlayer) this.getActivePlayer();
-            // let it pick a field
-            Field pickedField = player.pickField(this.board.fields);
-            // new turn
-            this.handleFieldClick(pickedField);
-        }
-    }
-
     private void newGame() {
-        int i = 0;
         for (Player player : players) {
             player.reset();
-            this.board.refreshPlayer(i, player);
-            i++;
+            StatusBar.instance().refreshPlayer(player);
         }
-
-        boolean[][] spots = this.createSpots(this.boardSize.x, this.boardSize.y);
-        this.board.resetFields();
-        this.board.addFields(spots);
+        
+        MineField.instance().resetFields();
+//        this.createFields();
     }
 
-    private int isGameOver() {
-        //System.out.println(this.pointsToWin + " aknát kell megtalálni a győzelemhez.");
-//        this.pointsToWin = 2;
-//        for (Player player : players) {
-//            System.out.println(player.getName() + " has " + player.getPoints() + " points.");
-//            if (player.getPoints() >= this.pointsToWin) {
-//                
-//                return 1;
-//            } /*else if (player.getPoints() == this.pointsToWin - 1
-//                    || player.getPoints() == this.pointsToWin - 3) {
-//                return -1;
-//            }*/
-//        }
-//
-        return 0;
-    }
-   
-       
     private Player getActivePlayer() {
         for (Player player : players) {
             if (player.isActive()) {
@@ -238,7 +174,34 @@ public class Game implements MouseListener {
         return null;
     }
 
-    private boolean[][] createSpots(int x, int y) {
+    private void createFields() {
+        Field field;
+        boolean[][] generatedSpots = this.createSpots();
+        for (int i = 1; i <= this.boardSize.x; i++) {
+            for (int j = 1; j <= this.boardSize.y; j++) {
+                // create a Field if its the first time
+                if (MineField.instance().fields.length > i && MineField.instance().fields[i].length > j 
+                        && MineField.instance().fields[i][j] instanceof Field) {
+                    field = MineField.instance().fields[i][j];
+                }
+                else field = new Field();
+                
+                field.setPosition(i, j);
+                if (generatedSpots[i][j]) {
+                    field.addMine();
+                    if (this.debugMode) {
+                        field.setText("x");
+                    }
+                }
+
+                field.addMouseListener(this);
+                MineField.instance().addField(field);
+            }
+        }
+    }
+
+    private boolean[][] createSpots() {
+        int x = this.boardSize.x, y = this.boardSize.y;
         boolean[][] generatedSpots = new boolean[(x * y) / 5 + 1][(x * y) / 5 + 1];
 
         for (int i = 1; i < generatedSpots.length; i++) {
@@ -265,41 +228,19 @@ public class Game implements MouseListener {
         return generatedSpots;
     }
 
-    private void addListeners() {
-        int count = 0;
-        for (int i = 1; i <= this.boardSize.x; i++) {
-            for (int j = 1; j <= this.boardSize.y; j++) {
-                this.board.fields[i][j].addMouseListener(this);
-                if (this.board.fields[i][j].hasMine()) {
-                    count++;
-                }
-            }
-        }
+    public BoardSize getBoardSize() {
+        return boardSize;
     }
 
-    public static BoardSize getBoardSize()
-    {
-        return boardSize;    
-    }
-           
-    public static int getCompLvl()
-    {
-        return compLvl;
-    }
-    
-    public static int getPointsToWin()
-    {
+    public int getPointsToWin() {
         return pointsToWin;
     }
-    
-    public static int getHumanPlayerPoints()
-    {
+
+    public int getHumanPlayerPoints() {
         return players[0].getPoints();
     }
-    
-    public static int getCompPlayerPoints()
-    {
+
+    public int getCompPlayerPoints() {
         return players[1].getPoints();
     }
-    
 }

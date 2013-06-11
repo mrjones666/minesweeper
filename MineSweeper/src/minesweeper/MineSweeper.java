@@ -6,6 +6,6 @@ public class MineSweeper {
 
     public static void main(String[] args) {
         Game game = Game.instance();
-        game.setDebugMode(true);    
+       // game.setDebugMode(true);    
     }
 }
