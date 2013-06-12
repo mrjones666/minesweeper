@@ -1,7 +1,9 @@
 package minesweeper;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
@@ -10,7 +12,6 @@ public class MineField extends JPanel {
     public Field[][] fields;
     private static MineField instance = null;
     private int x, y;
-    
 
     public static MineField instance() {
         if (instance == null) {
@@ -32,13 +33,36 @@ public class MineField extends JPanel {
     public void refreshField(int x, int y, ImageIcon flag) {
         new Sound("flag").play();
         Field field = this.fields[x][y];
+        field.disableClick();
         field.setText("");
         field.setIcon(flag);
     }
 
     public void refreshField(int x, int y, int surroundingMines) {
         Field field = this.fields[x][y];
+        field.disableClick();
         field.setText(surroundingMines + "");
+    }
+
+    public void floodFill(int x, int y) {
+        if ((x > 0 && x <= this.x && y > 0 && y <= this.y)) {
+            int surroundingMines = this.countSurroundingMines(x, y);
+
+            if (this.fields[x][y].isClickable()) {
+                this.refreshField(x, y, surroundingMines);
+
+                if (surroundingMines == 0) {
+                    this.floodFill(x, y + 1); //jobboldala
+                    this.floodFill(x, y - 1); //baloldala
+                    this.floodFill(x + 1, y); //alatta
+                    this.floodFill(x - 1, y); //felette
+                    this.floodFill(x + 1, y - 1); // átlók
+                    this.floodFill(x + 1, y + 1);
+                    this.floodFill(x - 1, y + 1);
+                    this.floodFill(x - 1, y - 1);
+                }
+            }
+        }
     }
 
     public void resetFields() {
@@ -79,5 +103,67 @@ public class MineField extends JPanel {
         this.setLayout(new GridLayout(x, y));
         // méret beállítása az x - y alapján!
         this.setPreferredSize(new Dimension(640, 640));
+    }
+
+    public void onBomb(Field field) {
+        int x = field.getXPos();
+        int y = field.getYPos();
+        try { //át kell írni, nagyon béna!
+            if (x > 0) {
+                this.fields[x - 1][y - 1].setBorder(
+                        BorderFactory.createMatteBorder(
+                        2, 2, 0, 0, Color.black));
+
+                this.fields[x - 1][y + 1].setBorder(
+                        BorderFactory.createMatteBorder(
+                        2, 0, 0, 2, Color.black));
+
+                this.fields[x + 1][y - 1].setBorder(
+                        BorderFactory.createMatteBorder(
+                        0, 2, 2, 0, Color.black));
+
+                this.fields[x + 1][y + 1].setBorder(
+                        BorderFactory.createMatteBorder(
+                        0, 0, 2, 2, Color.black));
+                
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void offBomb(Field field) {
+        int x = field.getXPos();
+        int y = field.getYPos();
+        try { //át kell írni, nagyon béna!
+            if (this.fields[x - 1][y - 1].isClickable()) {
+                this.fields[x - 1][y - 1].setBorder(BorderFactory.createLineBorder(
+                        new Color(59, 153, 203), 2));
+            } else {
+                this.fields[x - 1][y - 1].setBorder(BorderFactory.createLineBorder(new Color(136, 114, 115), 1));
+            }
+
+            if (this.fields[x - 1][y + 1].isClickable()) {
+                this.fields[x - 1][y + 1].setBorder(
+                        BorderFactory.createLineBorder(new Color(59, 153, 203), 2));
+            } else {
+                this.fields[x - 1][y + 1].setBorder(BorderFactory.createLineBorder(new Color(136, 114, 115), 1));
+            }
+
+            if (this.fields[x + 1][y - 1].isClickable()) {
+                this.fields[x + 1][y - 1].setBorder(
+                        BorderFactory.createLineBorder(new Color(59, 153, 203), 2));
+            } else {
+                this.fields[x + 1][y - 1].setBorder(BorderFactory.createLineBorder(new Color(136, 114, 115), 1));
+            }
+            if (this.fields[x + 1][y + 1].isClickable()) {
+                this.fields[x + 1][y + 1].setBorder(
+                        BorderFactory.createLineBorder(new Color(59, 153, 203), 2));
+            } else {
+                this.fields[x + 1][y + 1].setBorder(BorderFactory.createLineBorder(new Color(136, 114, 115), 1));
+            }
+        } catch (Exception e) {
+            System.out.println("Exception, de most leszarom!");
+        }
     }
 }

@@ -1,11 +1,13 @@
 package minesweeper;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 
-public class Game implements MouseListener {
+public class Game implements ActionListener, MouseListener {
 
     public int pointsToWin, round = 1;
     private static Game instance = null;
@@ -53,6 +55,7 @@ public class Game implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        System.out.println(e.getSource());
         if (e.getSource() instanceof Field) {
             Field field = (Field) e.getSource();
             this.handleFieldClick(field);
@@ -61,8 +64,6 @@ public class Game implements MouseListener {
 
     private void handleFieldClick(Field field) {
         if (field.isClickable()) {
-            field.disableClick();
-            System.out.println(field.hasMine() + " akna");
             // check points
             this.newTurn(field);
 
@@ -72,14 +73,14 @@ public class Game implements MouseListener {
             }
 
             // ha a gép jön, kérjük meg hogy rakjon
-            if (this.getActivePlayer() instanceof ComputerPlayer) {
-                
-                ComputerPlayer player = (ComputerPlayer) this.getActivePlayer();
-                // let it pick a field
-                Field pickedField = player.pickField(MineField.instance().fields);
-                // new turn
-                this.handleFieldClick(pickedField);
-            }
+//            if (this.getActivePlayer() instanceof ComputerPlayer) {
+//                
+//                ComputerPlayer player = (ComputerPlayer) this.getActivePlayer();
+//                // let it pick a field
+//                Field pickedField = player.pickField(MineField.instance().fields);
+//                // new turn
+//                this.handleFieldClick(pickedField);
+//            }
 
         }
     }
@@ -97,7 +98,8 @@ public class Game implements MouseListener {
                 if (surroundingMines > 0) {
                     new Sound("field").play();
                 } else {
-                    new Sound("flood").play(); // floodfill! todo
+                    new Sound("flood").play();
+                    MineField.instance().floodFill(field.getXPos(), field.getYPos());
                 }
                 
                 MineField.instance().refreshField(field.getXPos(), field.getYPos(), surroundingMines);
@@ -129,6 +131,7 @@ public class Game implements MouseListener {
         if (e.getSource() instanceof Field) {
             Field field = (Field) e.getSource();
             if (field.isClickable()) {
+              //  MineField.instance().onBomb(field);
                 field.setBorder(BorderFactory.createLineBorder(Color.black, 3));
             }
         }
@@ -138,6 +141,7 @@ public class Game implements MouseListener {
     public void mouseExited(MouseEvent e) {
         if (e.getSource() instanceof Field) {
             Field field = (Field) e.getSource();
+            //MineField.instance().offBomb(field);
             if (field.isClickable()) {
                 field.setBorder(BorderFactory.createLineBorder(new Color(59, 153, 203), 2));
             }
@@ -255,5 +259,10 @@ public class Game implements MouseListener {
 
     public int getCompPlayerPoints() {
         return players[1].getPoints();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        System.out.println(e.getSource());
     }
 }
